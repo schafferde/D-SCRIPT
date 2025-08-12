@@ -161,15 +161,12 @@ def get_pretrained(version="human_v2"):
     """
     Get pre-trained model object.
 
-    Currently Available Models
-    ==========================
-
     See the `documentation <https://d-script.readthedocs.io/en/main/data.html#trained-models>`_ for most up-to-date list.
 
     - ``lm_v1`` - Language model from `Bepler & Berger <https://github.com/tbepler/protein-sequence-embedding-iclr2019>`_.
     - ``human_v1`` - Human trained model from D-SCRIPT manuscript.
     - ``human_v2`` - Human trained model from Topsy-Turvy manuscript.
-    - ``tt3d`` - Human trained model with FoldSeek sequence inputs
+    - ``human_tt3d`` - Human trained model with FoldSeek sequence inputs
 
     Default: ``human_v2``
 

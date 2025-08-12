@@ -188,21 +188,25 @@ def glide_predict_links(edgelist, X, params={}, thres_p=0.9):
 
     :param edgelist: A list with elements of type `(p, q, wt)`
     :param X: A nxk embedding matrix
-    :param params: A dictionary with entries
+    :param params: A dictionary with entries:
 
-    {
-        alpha       => real number
-        beta        => real number
-        delta       => real number
-        loc         => String, can be `cw` for common weighted, `l3` for l3 local scoring
+        - alpha: real number
+        - beta: real number
+        - delta: real number
+        - loc: String, can be `cw` for common weighted, `l3` for l3 local scoring
 
-        ### To enable ctypes, the following entries should be there ###
+        To enable ctypes, the following entries should be there:
 
-        ctypes_on   => True  # This key should only be added if ctypes is on (dont add this
-                           # if ctypes is not added)
-        so_location => String location of the .so dynamic library
+        - ctypes_on: True (This key should only be added if ctypes is on)
+        - so_location: String location of the .so dynamic library
 
-    }
+    :param thres_p: Threshold percentile value
+    :type edgelist: list
+    :type X: np.ndarray
+    :type params: dict
+    :type thres_p: float
+    :return: Glide matrix
+    :rtype: np.ndarray
     """
     edgedict = create_edge_dict(edgelist)
     ndict = create_neighborhood_dict(edgelist)

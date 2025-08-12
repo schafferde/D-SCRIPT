@@ -25,7 +25,7 @@ copyright = "2021, Samuel Sledzieski, Rohit Singh"
 author = "Samuel Sledzieski, Rohit Singh"
 
 # The full version, including alpha/beta/rc tags
-release = "v2.0"
+release = "v0.3.0"
 master_doc = "index"
 
 
