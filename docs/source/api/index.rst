@@ -24,7 +24,7 @@ dscript.fasta
    :show-inheritance:
 
 dscript.foldseek
--------------
+----------------
 
 .. automodule:: dscript.foldseek
    :members:
@@ -32,7 +32,7 @@ dscript.foldseek
    :show-inheritance:
 
 dscript.glider
--------------
+--------------
 
 .. automodule:: dscript.glider
    :members:
@@ -48,7 +48,7 @@ dscript.language\_model
    :show-inheritance:
 
 dscript.load_worker
--------------
+-------------------
 
 .. automodule:: dscript.load_worker
    :members:
@@ -56,7 +56,7 @@ dscript.load_worker
    :show-inheritance:
 
 dscript.loading
--------------
+---------------
 
 .. automodule:: dscript.loading
    :members:
@@ -72,7 +72,7 @@ dscript.pretrained
     :show-inheritance:
 
 dscript.glider
-------------------
+--------------
 
 .. automodule:: dscript.glider
     :members:

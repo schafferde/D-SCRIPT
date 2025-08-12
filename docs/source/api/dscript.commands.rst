@@ -47,7 +47,7 @@ See `Evaluation <../usage.html#evaluation>`_ for full usage details.
    :show-inheritance:
 
 dscript.commands.extract_3di
--------------------------
+----------------------------
 
 See `Extract 3Di <../usage.html#extract_3di>`_ for full usage details.
 
