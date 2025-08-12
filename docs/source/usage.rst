@@ -45,7 +45,7 @@ Evaluate a trained model
 
 
 Blocked, Multi-GPU Prediction
-~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: bash
 
@@ -82,8 +82,8 @@ Blocked, Multi-GPU Prediction
                             sparse pairs, such that many pairs of blocks might contain no pairs of proteins of interest. Only available when blocks > 1 and pairs
                             specified. Maximum (embedding) memory usage with this option is 4 blocks' worth.
 
-Bipartite, Multi-GPU Prediction
-~~~~~~~~~~
+Bipartite Prediction
+~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: bash
 
@@ -118,7 +118,7 @@ Bipartite, Multi-GPU Prediction
 
 
 Serial Prediction
-~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
 
 .. code-block:: bash
 
