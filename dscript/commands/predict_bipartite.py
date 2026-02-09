@@ -28,8 +28,8 @@ from .par_writer import _writer
 
 class BipartitePredictionArguments(NamedTuple):
     cmd: str
-    protA: str
-    protB: str
+    protA: list[str]
+    protB: list[str]
     model: str | None
     embedA: str
     embedA: str | None
@@ -52,13 +52,15 @@ def add_args(parser):
     """
     parser.add_argument(
         "--protA",
+        type=str, nargs="+",
         required=True,
-        help="A text file with protein IDs, one on each line. All pairs between proteins in this file and proteins in protB will be predicted",
+        help="One or more text files with protein IDs, one on each line. All pairs between proteins in this file and proteins in protB will be predicted",
     )
     parser.add_argument(
         "--protB",
+        type=str, nargs="+",
         required=True,
-        help="A text file with protein IDs, one on each line. All pairs between proteins in protA and proteins in this file will be predicted",
+        help="One or more text files with protein IDs, one on each line. All pairs between proteins in protA and proteins in this file will be predicted",
     )
     parser.add_argument(
         "--model",
@@ -133,18 +135,18 @@ def add_args(parser):
 
 
 class ProteinSet:
-    def __init__(self, protPath="", blocks=1, logFile=None):
+    def __init__(self, protPaths, blocks=1, logFile=None):
         self.num_blocks = blocks
-        try:
-            log(f"Loading protein IDs from {protPath}", file=logFile, print_also=True)
-            with open(protPath) as f:
-                self.all_prots = [
-                    line.strip() for line in f if line and not line.isspace()
-                ]
-        except FileNotFoundError:
-            log(f"Proteins file {protPath} not found", file=logFile, print_also=True)
-            logFile.close()
-            sys.exit(4)
+        self.all_prots = []
+        for protPath in protPaths:
+            try:
+                log(f"Loading protein IDs from {protPath}", file=logFile, print_also=True)
+                with open(protPath) as f:
+                    self.all_prots.extend([line.strip() for line in f if line and not line.isspace()])
+            except FileNotFoundError:
+                log(f"Proteins file {protPath} not found", file=logFile, print_also=True)
+                logFile.close()
+                sys.exit(4)
         self.n_prots = len(self.all_prots)
         self.block_size = math.ceil(self.n_prots / self.num_blocks)
         self.loadpool = None

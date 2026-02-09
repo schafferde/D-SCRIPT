@@ -29,8 +29,8 @@ from .par_writer import _writer
 
 class BlockedPredictionArguments(NamedTuple):
     cmd: str
-    protins: str | None
-    pairs: str | None
+    protins: list[str] | None
+    pairs: list[str] | None
     model: str | None
     embeddings: str
     foldseek_fasta: str | None
@@ -51,12 +51,14 @@ def add_args(parser):
 
     parser.add_argument(
         "--proteins",
-        help="File with protein IDs for which to predict all pairs, one per line; specify one of proteins or pairs",
+        type=str, nargs="+",
+        help="One or more files with protein IDs for which to predict all pairs, one per line; specify one of proteins or pairs",
         required=False,
     )
     parser.add_argument(
         "--pairs",
-        help="File with candidate protein pairs to predict, one pair per line; specify one of proteins or pairs",
+        type=str, nargs="+",
+        help="One or more files with candidate protein pairs to predict, one pair per line; specify one of proteins or pairs",
         required=False,
     )
     parser.add_argument(
@@ -179,9 +181,9 @@ def main(args):
     # Load Proteins
     all_pairs = args.proteins is not None
     if all_pairs:
-        tsvPath = args.proteins
+        tsvPaths = args.proteins
     elif args.pairs is not None:
-        tsvPath = args.pairs
+        tsvPaths = args.pairs
     else:
         log(
             "One of --proteins and --pairs must be specified.",
@@ -190,18 +192,20 @@ def main(args):
         )
         logFile.close()
         sys.exit(4)
-    try:
-        log(
-            f"Loading {'' if all_pairs else 'pairs of '}protein IDs from {tsvPath}",
-            file=logFile,
-            print_also=True,
-        )
-        with open(tsvPath) as f:
-            tsv_lines = [line.strip() for line in f if line and not line.isspace()]
-    except FileNotFoundError:
-        log(f"Proteins / Pairs file {tsvPath} not found", file=logFile, print_also=True)
-        logFile.close()
-        sys.exit(4)
+    tsv_lines = []
+    for tsvPath in tsvPaths:
+        try:
+            log(
+                f"Loading {'' if all_pairs else 'pairs of '}protein IDs from {tsvPath}",
+                file=logFile,
+                print_also=True,
+            )
+            with open(tsvPath) as f:
+                tsv_lines.extend([line.strip() for line in f if line and not line.isspace()])
+        except FileNotFoundError:
+            log(f"Proteins / Pairs file {tsvPath} not found", file=logFile, print_also=True)
+            logFile.close()
+            sys.exit(4)
 
     if all_pairs:
         all_prots = tsv_lines
@@ -240,7 +244,7 @@ def main(args):
         n_pairs = len(pairs0)
 
         # Need to do this later because we don't know the # of unique proteins
-        # We could make this more efficint by keeping only the upper triangular part of the matrix in sparse storage
+        # We could make this more efficient by keeping only the upper triangular part of the matrix in sparse storage
         pairs_bool = np.zeros((n_prots, n_prots), dtype=np.bool_)
         pairs_bool[pairs0, pairs1] = 1
         pairs_bool[pairs1, pairs0] = 1
