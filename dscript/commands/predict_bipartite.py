@@ -52,13 +52,15 @@ def add_args(parser):
     """
     parser.add_argument(
         "--protA",
-        type=str, nargs="+",
+        type=str,
+        nargs="+",
         required=True,
         help="One or more text files with protein IDs, one on each line. All pairs between proteins in this file and proteins in protB will be predicted",
     )
     parser.add_argument(
         "--protB",
-        type=str, nargs="+",
+        type=str,
+        nargs="+",
         required=True,
         help="One or more text files with protein IDs, one on each line. All pairs between proteins in protA and proteins in this file will be predicted",
     )
@@ -142,7 +144,9 @@ class ProteinSet:
             try:
                 log(f"Loading protein IDs from {protPath}", file=logFile, print_also=True)
                 with open(protPath) as f:
-                    self.all_prots.extend([line.strip() for line in f if line and not line.isspace()])
+                    self.all_prots.extend(
+                        [line.strip() for line in f if line and not line.isspace()]
+                    )
             except FileNotFoundError:
                 log(f"Proteins file {protPath} not found", file=logFile, print_also=True)
                 logFile.close()

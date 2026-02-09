@@ -6,5 +6,5 @@ __all__ = [
     "predict_block",
     "predict_bipartite",
     "extract_3di",
-    "split_tasks"
+    "split_tasks",
 ]

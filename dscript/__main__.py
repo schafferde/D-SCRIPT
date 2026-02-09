@@ -12,8 +12,8 @@ from .commands import (
     predict_bipartite,
     predict_block,
     predict_serial,
+    split_tasks,
     train,
-    split_tasks
 )
 from .commands.embed import EmbeddingArguments
 from .commands.evaluate import EvaluateArguments
@@ -21,8 +21,8 @@ from .commands.extract_3di import Extract3DiArguments
 from .commands.predict_bipartite import BipartitePredictionArguments
 from .commands.predict_block import BlockedPredictionArguments
 from .commands.predict_serial import PredictionArguments
-from .commands.train import TrainArguments
 from .commands.split_tasks import SplitTasksArguments
+from .commands.train import TrainArguments
 
 DScriptArguments = (
     EmbeddingArguments
@@ -32,6 +32,7 @@ DScriptArguments = (
     | BipartitePredictionArguments
     | TrainArguments
     | Extract3DiArguments
+    | SplitTasksArguments
 )
 
 
@@ -74,7 +75,7 @@ def main():
         "predict": predict_block,
         "predict_bipartite": predict_bipartite,
         "extract-3di": extract_3di,
-        "split_tasks": split_tasks
+        "split_tasks": split_tasks,
     }
 
     for name, module in modules.items():

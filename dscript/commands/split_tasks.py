@@ -1,15 +1,16 @@
 """
-Split a large group of proteins into smaller dscript prediction tasks using a blocked approach. 
+Split a large group of proteins into smaller dscript prediction tasks using a blocked approach.
 """
 
 from __future__ import annotations
 
 import argparse
-from math import ceil
+import os
 import sys
 from collections.abc import Callable
+from math import ceil
 from typing import NamedTuple
-import os
+
 import numpy as np
 
 from ..utils import log
@@ -37,8 +38,8 @@ def add_args(parser):
 
     :meta private:
     """
-    group_a = parser.add_argument_group('Arguments for Spliting Tasks')
-    group_b = parser.add_argument_group('Arguments Passed to D-SCRIPT Tasks')
+    group_a = parser.add_argument_group("Arguments for Spliting Tasks")
+    group_b = parser.add_argument_group("Arguments Passed to D-SCRIPT Tasks")
     group_a.add_argument(
         "--proteins",
         help="File with protein IDs for which to predict all pairs, one per line; specify one of proteins or pairs",
@@ -66,7 +67,12 @@ def add_args(parser):
         """,
         default=None,
     )
-    group_a.add_argument("-o", "--workdir", help="Directory for intermediate and output files", required=True)
+    group_a.add_argument(
+        "-o",
+        "--workdir",
+        help="Directory for intermediate and output files",
+        required=True,
+    )
     group_b.add_argument(
         "-d",
         "--device",
@@ -106,7 +112,7 @@ def add_args(parser):
         "--split_blocks",
         type=int,
         default=8,
-        help="Number of blocks to use when splitting tasks. Will split into (SB/2)^2 tasks, e.g. 6-> 9, 8->16, each with 3(n/SB)^2 protein pairs. Must be even."
+        help="Number of blocks to use when splitting tasks. Will split into (SB/2)^2 tasks, e.g. 6-> 9, 8->16, each with 3(n/SB)^2 protein pairs. Must be even.",
     )
     return parser
 
@@ -121,9 +127,13 @@ def main(args):
     # Validate and update paths
     logFile = None
     num_blocks = args.split_blocks
-    if num_blocks < 1 or num_blocks %2 == 1:
+    if num_blocks < 1 or num_blocks % 2 == 1:
         num_blocks = max(num_blocks + 1, 4)
-        log(f"Can only split based on positive, even # of blocks, incrementing to {num_blocks}", file=logFile, print_also=True)
+        log(
+            f"Can only split based on positive, even # of blocks, incrementing to {num_blocks}",
+            file=logFile,
+            print_also=True,
+        )
 
     modelPath = args.model
     if modelPath.endswith(".sav") or modelPath.endswith(".pt"):
@@ -133,8 +143,12 @@ def main(args):
                 f"Will load model locally from {modelPath}", file=logFile, print_also=True
             )
         else:
-            log(f"Local model {modelPath} not found; will use this path anyways", file=logFile, print_also=True)
-            
+            log(
+                f"Local model {modelPath} not found; will use this path anyways",
+                file=logFile,
+                print_also=True,
+            )
+
     outDir = os.path.abspath(args.workdir)
     if not os.path.exists(outDir):
         log(f"Creating working directory {outDir}", file=logFile, print_also=True)
@@ -144,15 +158,23 @@ def main(args):
     if os.path.isfile(embedFile):
         embedFile = os.path.abspath(embedFile)
     else:
-        log(f"Embeddings file {embedFile} not found; will use this path anyways", file=logFile, print_also=True)
+        log(
+            f"Embeddings file {embedFile} not found; will use this path anyways",
+            file=logFile,
+            print_also=True,
+        )
 
     foldseekFile = args.foldseek_fasta
     if foldseekFile is not None:
         if os.path.isfile(foldseekFile):
             foldseekFile = os.path.abspath(embedFile)
         else:
-            log(f"Foldseek file {foldseekFile} not found; will use this path anyways", file=logFile, print_also=True)
-    
+            log(
+                f"Foldseek file {foldseekFile} not found; will use this path anyways",
+                file=logFile,
+                print_also=True,
+            )
+
     fixedArgString = f"--model {modelPath} --device {args.device} --thresh {args.thresh} --load_proc {args.load_proc}"
     if args.store_cmaps:
         fixedArgString += " --store_cmaps"
@@ -175,7 +197,7 @@ def main(args):
     all_pairs = args.proteins is not None
     if all_pairs:
         tsvPath = args.proteins
-        biparArgString = f"--embedA {embedFile} --blocksA {ceil(args.blocks/2)} --blocksB {args.blocks}"
+        biparArgString = f"--embedA {embedFile} --blocksA {ceil(args.blocks / 2)} --blocksB {args.blocks}"
         if foldseekFile is not None:
             biparArgString += f" --foldseekA {foldseekFile}"
     elif args.pairs is not None:
@@ -234,74 +256,115 @@ def main(args):
         pairs_bool[pairs1, pairs0] = 1
         pairs_bool = np.triu(pairs_bool)  # Makes a copy
 
-    block_size = ceil(n_prots / num_blocks) #Refers to blocks used for splitting here
+    block_size = ceil(n_prots / num_blocks)  # Refers to blocks used for splitting here
+
     def get_bounds(block):
         start = block * block_size
         end = min(start + block_size, n_prots)
         return (start, end)  # all_prots[start:end]
 
-    n_tasks = (num_blocks//2)**2
+    n_tasks = (num_blocks // 2) ** 2
 
     def write_self_block(block, script, task_num):
         start1, end1 = get_bounds(block)
-        start2, end2 = get_bounds(block+1)
+        start2, end2 = get_bounds(block + 1)
         outfile = os.path.join(outDir, f"predictions_task_{task_num}")
         if all_pairs:
-            pfile1 = os.path.join(outDir,f"proteins_group_{block+1}.txt")
-            pfile2 = os.path.join(outDir,f"proteins_group_{block+2}.txt")
+            pfile1 = os.path.join(outDir, f"proteins_group_{block + 1}.txt")
+            pfile2 = os.path.join(outDir, f"proteins_group_{block + 2}.txt")
             with open(pfile1, "w") as prot_file:
                 prot_file.write("\n".join(all_prots[start1:end1]))
                 prot_file.write("\n")
             with open(pfile2, "w") as prot_file:
                 prot_file.write("\n".join(all_prots[start2:end2]))
                 prot_file.write("\n")
-            print("dscript predict", fixedArgString, allArgString, "--proteins", pfile1, pfile2, "--outfile", outfile, file=script)
+            print(
+                "dscript predict",
+                fixedArgString,
+                allArgString,
+                "--proteins",
+                pfile1,
+                pfile2,
+                "--outfile",
+                outfile,
+                file=script,
+            )
         else:
-            pfile = os.path.join(outDir,f"pairs_task_{task_num}.txt")
-            #Note assumption that blocks are contiguous
+            pfile = os.path.join(outDir, f"pairs_task_{task_num}.txt")
+            # Note assumption that blocks are contiguous
             with open(pfile, "w") as pairs_file:
                 for i0 in range(start1, end2):
-                    for i1 in range(i0+1, end2):
-                        if pairs_bool[i0, i1]: #Perhpas not the most efficient
+                    for i1 in range(i0 + 1, end2):
+                        if pairs_bool[i0, i1]:  # Perhpas not the most efficient
                             pairs_file.write(all_prots[i0] + "\t" + all_prots[i1] + "\n")
-            print("dscript predict", fixedArgString, allArgString, "--pairs", pfile, "--outfile", outfile, file=script)
+            print(
+                "dscript predict",
+                fixedArgString,
+                allArgString,
+                "--pairs",
+                pfile,
+                "--outfile",
+                outfile,
+                file=script,
+            )
         return task_num + 1
 
     def write_block(block1, block2, script, task_num):
         outfile = os.path.join(outDir, f"predictions_task_{task_num}")
         if all_pairs:
-            pfile1 = os.path.join(outDir,f"proteins_group_{block1+1}.txt")
-            pfile2 = os.path.join(outDir,f"proteins_group_{block2+1}.txt")
-            pfile3 = os.path.join(outDir,f"proteins_group_{block2+2}.txt")
-            print("dscript predict_bipartite", fixedArgString, biparArgString, "--protA", pfile1, "--protB", pfile2, pfile3, "--outfile", outfile, file=script)
-        else: #Prep pairs file - will lead to perhaps slightly less-efficient outcome when predicting
-            pfile = os.path.join(outDir,f"pairs_task_{task_num}.txt")
+            pfile1 = os.path.join(outDir, f"proteins_group_{block1 + 1}.txt")
+            pfile2 = os.path.join(outDir, f"proteins_group_{block2 + 1}.txt")
+            pfile3 = os.path.join(outDir, f"proteins_group_{block2 + 2}.txt")
+            print(
+                "dscript predict_bipartite",
+                fixedArgString,
+                biparArgString,
+                "--protA",
+                pfile1,
+                "--protB",
+                pfile2,
+                pfile3,
+                "--outfile",
+                outfile,
+                file=script,
+            )
+        else:  # Prep pairs file - will lead to perhaps slightly less-efficient outcome when predicting
+            pfile = os.path.join(outDir, f"pairs_task_{task_num}.txt")
             start1, end1 = get_bounds(block1)
             start2, _ = get_bounds(block2)
-            _, end3 = get_bounds(block2+1)
-            #Note assumption that blocks are contiguous
+            _, end3 = get_bounds(block2 + 1)
+            # Note assumption that blocks are contiguous
             with open(pfile, "w") as pairs_file:
                 for i0 in range(start1, end1):
                     for i1 in range(start2, end3):
-                        if pairs_bool[i0, i1]: #Perhpas not the most efficient
+                        if pairs_bool[i0, i1]:  # Perhpas not the most efficient
                             pairs_file.write(all_prots[i0] + "\t" + all_prots[i1] + "\n")
-            print("dscript predict", fixedArgString, allArgString, "--pairs", pfile, "--outfile", outfile, file=script)
+            print(
+                "dscript predict",
+                fixedArgString,
+                allArgString,
+                "--pairs",
+                pfile,
+                "--outfile",
+                outfile,
+                file=script,
+            )
         return task_num + 1
 
-    task_num=1
+    task_num = 1
     script = open(os.path.join(outDir, f"dscript_{n_tasks}_tasks.sh"), "w")
     for i in range(num_blocks):
-        #Create block file
+        # Create block file
         if i % 2 == 0:
             # Do self block
             task_num = write_self_block(i, script, task_num)
             for j in range(i + 2, num_blocks, 2):  # Move up other blocks
                 task_num = write_block(i, j, script, task_num)
         else:
-            for j in range(i+1, num_blocks, 2):
+            for j in range(i + 1, num_blocks, 2):
                 task_num = write_block(i, j, script, task_num)
     script.close()
-    
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)

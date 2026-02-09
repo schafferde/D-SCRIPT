@@ -51,13 +51,15 @@ def add_args(parser):
 
     parser.add_argument(
         "--proteins",
-        type=str, nargs="+",
+        type=str,
+        nargs="+",
         help="One or more files with protein IDs for which to predict all pairs, one per line; specify one of proteins or pairs",
         required=False,
     )
     parser.add_argument(
         "--pairs",
-        type=str, nargs="+",
+        type=str,
+        nargs="+",
         help="One or more files with candidate protein pairs to predict, one pair per line; specify one of proteins or pairs",
         required=False,
     )
@@ -201,9 +203,15 @@ def main(args):
                 print_also=True,
             )
             with open(tsvPath) as f:
-                tsv_lines.extend([line.strip() for line in f if line and not line.isspace()])
+                tsv_lines.extend(
+                    [line.strip() for line in f if line and not line.isspace()]
+                )
         except FileNotFoundError:
-            log(f"Proteins / Pairs file {tsvPath} not found", file=logFile, print_also=True)
+            log(
+                f"Proteins / Pairs file {tsvPath} not found",
+                file=logFile,
+                print_also=True,
+            )
             logFile.close()
             sys.exit(4)
 
